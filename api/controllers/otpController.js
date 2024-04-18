@@ -1,7 +1,10 @@
-// controllers/otpController.js
 const otpGenerator = require("otp-generator");
 const OTP = require("../models/otpModels");
 const User = require("../models/user");
+const { sendVerificationEmail } = require("../utils/mailSender");
+
+// Define the time interval for OTP regeneration (in milliseconds)
+const OTP_REGENERATION_INTERVAL = 60 * 60 * 1000; // 1 hour
 
 exports.sendOTP = async (req, res) => {
   try {
@@ -16,33 +19,36 @@ exports.sendOTP = async (req, res) => {
       });
     }
 
-    // let otpCreated = await OTP.findOne({ Email });
-    // if (otpCreated) {
-    //   return res.status(401).json({
-    //     success: false,
-    //     message: 'OTP already created: Please wait for 2 minutes to create a new',
-    //   });
-    // }
+    // Check if there's an existing OTP for this email
+    let existingOTP = await OTP.findOne({ Email });
 
-    let otp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      lowerCaseAlphabets: false,
-      specialChars: false,
-    });
-    let result = await OTP.findOne({ otp: otp });
-    while (result) {
-      otp = otpGenerator.generate(6, {
+    // If no existing OTP or the last OTP is older than the regeneration interval
+    if (
+      !existingOTP ||
+      Date.now() - existingOTP.createdAt.getTime() >= OTP_REGENERATION_INTERVAL
+    ) {
+      // Generate a new OTP
+      const otp = otpGenerator.generate(6, {
         upperCaseAlphabets: false,
+        lowerCaseAlphabets: false,
+        specialChars: false,
       });
-      result = await OTP.findOne({ otp: otp });
+
+      // Create or update the OTP in the database
+      existingOTP = await OTP.findOneAndUpdate(
+        { Email },
+        { $set: { otp, createdAt: new Date() } },
+        { upsert: true, new: true }
+      );
     }
-    const otpPayload = { Email, otp };
-    const otpBody = await OTP.create(otpPayload);
-    console.log("this is otp body" + otpBody);
+
+    // Send OTP via email
+    await sendVerificationEmail(Email, existingOTP.otp);
+
     res.status(200).json({
       success: true,
       message: "OTP sent successfully",
-      otp,
+      otp: existingOTP.otp,
     });
   } catch (error) {
     console.log(error.message);

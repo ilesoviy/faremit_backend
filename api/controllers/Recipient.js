@@ -1,5 +1,13 @@
 const createRecipient = async (req, res) => {
-  const { firstName, city, phoneNumber, selectedCountry } = req.body;
+  const {
+    firstName,
+    city,
+    phoneNumber,
+    selectedCountry,
+    lastName,
+    Email,
+    Reason,
+  } = req.body;
   try {
     // Validate required fields
     if (!city || !phoneNumber || !firstName || !selectedCountry) {
@@ -24,8 +32,11 @@ const createRecipient = async (req, res) => {
     const recipient = {
       firstName,
       city,
+      lastName,
+      Email,
       phoneNumber,
       selectedCountry,
+      Reason,
     };
 
     // Add the recipient to the user's recipients array

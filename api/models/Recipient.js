@@ -21,6 +21,13 @@ const RecipientSchema = new mongoose.Schema({
     minlength: [3, "First name must be at least 3 characters"],
     maxlength: [30, "First name must be at most 30 characters"],
   },
+  Email: {
+    type: String,
+    required: [true, "Email is required"],
+  },
+  Reason: {
+    type: String,
+  },
   phoneNumber: {
     type: String,
     required: [true, "Last name is required"],
