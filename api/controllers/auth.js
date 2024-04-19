@@ -19,7 +19,7 @@ const verifyToken = (token) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
+    console.log(req.body);
     if (!email || !password) {
       return res.status(400).json({
         status: "fail",
@@ -28,7 +28,6 @@ exports.login = async (req, res, next) => {
     }
 
     const userData = await User.findOne({ email }).select("+password");
-    console.log(userData);
 
     if (!userData) {
       return res.status(401).json({
@@ -71,8 +70,18 @@ exports.register = async (req, res, next) => {
       country,
       userOTP,
     } = req.body;
-    console.log(req.body);
-
+    console.log("signup req" + req.body);
+    console.log(
+      phone,
+      password,
+      Email,
+      postalCode,
+      fullName,
+      city,
+      address,
+      country,
+      userOTP
+    );
     const missingFields = [];
 
     // Check if all details are provided
